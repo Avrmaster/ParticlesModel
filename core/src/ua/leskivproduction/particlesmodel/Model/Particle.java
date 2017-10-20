@@ -2,6 +2,7 @@ package ua.leskivproduction.particlesmodel.Model;
 
 import static java.lang.Double.POSITIVE_INFINITY;
 import static java.lang.Math.abs;
+import static java.lang.Math.sqrt;
 
 public class Particle {
 
@@ -35,7 +36,7 @@ public class Particle {
         this.y = SCREEN_HEIGHT*(Math.random()*0.4+0.3);
         this.vx = SCREEN_WIDTH*(Math.random()-0.5)/7;
         this.vy = SCREEN_HEIGHT*(Math.random()-0.5)/7;
-        this.radius = SCREEN_WIDTH*Math.min(0.02, 10*Math.random()/PARTICLES_COUNT);
+        this.radius = SCREEN_WIDTH*Math.min(0.02, 2*Math.random()/PARTICLES_COUNT);
     }
 
     public void update(double deltaTime) {
@@ -63,6 +64,10 @@ public class Particle {
         double drdr = dx*dx + dy*dy;
 
         double sigma = this.radius + that.radius;
+
+        if (sqrt(drdr) <= sigma)
+            return 1;
+
         double d = (dvdr*dvdr) - dvdv * (drdr - sigma*sigma);
         if (d < 0) return POSITIVE_INFINITY;
         return -(dvdr + Math.sqrt(d)) / dvdv;
@@ -72,8 +77,8 @@ public class Particle {
         if (vy == 0)
             return POSITIVE_INFINITY;
 
-        if (y - radius <= 0 || y >= SCREEN_HEIGHT-radius)
-            return 0;
+//        if (y - radius <= 0 || y >= SCREEN_HEIGHT-radius)
+//            return 0;
 
         if (vy > 0) {
             return (SCREEN_HEIGHT - radius - y) / vy;
@@ -86,8 +91,8 @@ public class Particle {
         if (vx == 0)
             return POSITIVE_INFINITY;
 
-        if (x - radius <= 0 || x >= SCREEN_WIDTH-radius)
-            return 0;
+//        if (x - radius <= 0 || x >= SCREEN_WIDTH-radius)
+//            return 0;
 
         if (vx > 0) {
             return (SCREEN_WIDTH - radius - x) / vx;
@@ -98,8 +103,8 @@ public class Particle {
 
     public void bounceOff(Particle that) {
         //we assume, that particle's mass is quadratically proportional to it's radius
-        double thisM = Math.pow(this.radius, 2);
-        double thatM = Math.pow(that.radius, 2);
+        double thisM = this.radius*this.radius;
+        double thatM = that.radius*that.radius;
 
         double dx = that.x - this.x, dy = that.y - this.y;
         double dvx = that.vx - this.vx, dvy = that.vy - this.vy;

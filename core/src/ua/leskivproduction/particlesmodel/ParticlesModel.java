@@ -20,24 +20,26 @@ public class ParticlesModel extends ApplicationAdapter {
     private final static boolean DEBUG = false;
 
 	private ShapeRenderer shapeRenderer;
-	private OrthographicCamera cam;
+	private OrthographicCamera mainCam;
+	private OrthographicCamera epicCam;
 	private SpriteBatch batch;
     private BitmapFont font;
 
-    private final static int PARTICLES_COUNT = 1000;
-    private final static int MAX_COMPUTATIONS_PER_FRAME = 3000;
+    private final static int PARTICLES_COUNT = 300;
+    private final static int MAX_COMPUTATIONS_PER_FRAME = 100;
 
 
     private final MinQueue<ModelEvent> eventMinQueue = new MinQueue<ModelEvent>((int)(PARTICLES_COUNT*Math.log(PARTICLES_COUNT)));
     private final Particle[] particles = new Particle[PARTICLES_COUNT];
 
-    private float timeWarp = 1;
+    private float timeWarp = 3;
 
 	@Override
 	public void create () {
         batch = new SpriteBatch();
         shapeRenderer = new ShapeRenderer();
-        cam = newCamera();
+        mainCam = newCamera();
+        epicCam = newCamera();
 
         font = new BitmapFont(Gdx.files.internal("core/assets/font.fnt"),
                 Gdx.files.internal("core/assets/font.png"), false);
@@ -60,7 +62,7 @@ public class ParticlesModel extends ApplicationAdapter {
 	        return;
 	    for (Particle b : particles) {
             if (b != null) {
-                enqueueEvent(new ModelEvent(time+p.timeToHit(b), p, b));
+                enqueueEvent(new ModelEvent(time+p.timeToHit(b), b, p));
             }
         }
         enqueueEvent(new ModelEvent(time+p.timeToHitHorizontalWall(), p, null));
@@ -80,15 +82,27 @@ public class ParticlesModel extends ApplicationAdapter {
 	    Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-//        Gdx.gl.glEnable(GL20.GL_BLEND);
-//        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
-//        Gdx.gl.glDisable(GL20.GL_BLEND);
+        Gdx.gl.glEnable(GL20.GL_BLEND);
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+        Gdx.gl.glDisable(GL20.GL_BLEND);
 
-        cam.update();
-        batch.setProjectionMatrix(cam.combined);
-        shapeRenderer.setProjectionMatrix(cam.combined);
 
-        float deltaTime = Gdx.graphics.getDeltaTime()*timeWarp;
+
+
+        OrthographicCamera currentCam = mainCam;
+        if (Gdx.input.isKeyPressed(Input.Keys.G)) {
+            Particle tracked = particles[0];
+            currentCam = newCamera();
+            currentCam.translate(tracked.getX()-Gdx.graphics.getWidth()/2, tracked.getY()-Gdx.graphics.getHeight()/2);
+            currentCam.zoom = 0.2f;
+        }
+
+        currentCam.update();
+        batch.setProjectionMatrix(currentCam.combined);
+        shapeRenderer.setProjectionMatrix(currentCam.combined);
+
+//        float deltaTime = Gdx.graphics.getDeltaTime()*timeWarp;
+        float deltaTime = 0.001f;
 
         if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
             deltaTime /= 20;
@@ -98,21 +112,19 @@ public class ParticlesModel extends ApplicationAdapter {
         }
 
         time += deltaTime;
-        for (int i = 0; i < particles.length; i++) {
-            particles[i].update(deltaTime);
-        }
-
-        System.out.println("Queue size: "+eventMinQueue.size());
 
         int performedCnt = 0;
+        System.out.println("Queue size: "+eventMinQueue.size());
         while (eventMinQueue.size() > 0 && ++performedCnt < MAX_COMPUTATIONS_PER_FRAME) {
             ModelEvent event = eventMinQueue.getMin();
+
             if (event.getTime() > time)
                 break;
 
             if (event.isValid()) {
                 Particle a = event.getA();
                 Particle b = event.getB();
+
                 if (a != null)
                     a.update(event.getTime()-time);
                 if (b != null)
@@ -127,15 +139,21 @@ public class ParticlesModel extends ApplicationAdapter {
                 }
 
                 if (a != null) {
-                    enqueueEventsFor(a);
+                    a.update(time-event.getTime());
                 }
                 if (b != null) {
-                    enqueueEventsFor(b);
+                    b.update(time-event.getTime());
                 }
+
+                enqueueEventsFor(a);
+                enqueueEventsFor(b);
             }
 
             eventMinQueue.removeMin();
         }
+
+        for (Particle p : particles)
+            p.update(deltaTime);
 
         drawParticles();
         drawOutline();
@@ -187,32 +205,32 @@ public class ParticlesModel extends ApplicationAdapter {
 	    int dy = Gdx.graphics.getHeight()/100;
 
         if (Gdx.input.isKeyPressed(Input.Keys.A)) {
-            cam.zoom += 0.02;
+            mainCam.zoom += 0.02;
         }
         if (Gdx.input.isKeyPressed(Input.Keys.Q)) {
-            cam.zoom -= 0.02;
+            mainCam.zoom -= 0.02;
         }
         if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
-            cam.translate(-dx, 0, 0);
+            mainCam.translate(-dx, 0, 0);
         }
         if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
-            cam.translate(dx, 0, 0);
+            mainCam.translate(dx, 0, 0);
         }
         if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
-            cam.translate(0, -dy, 0);
+            mainCam.translate(0, -dy, 0);
         }
         if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
-            cam.translate(0, dy, 0);
+            mainCam.translate(0, dy, 0);
         }
         if (Gdx.input.isKeyPressed(Input.Keys.W)) {
-            cam.rotate(-0.5f, 0, 0, 1);
+            mainCam.rotate(-0.5f, 0, 0, 1);
         }
         if (Gdx.input.isKeyPressed(Input.Keys.E)) {
-            cam.rotate(0.5f, 0, 0, 1);
+            mainCam.rotate(0.5f, 0, 0, 1);
         }
 
         if (Gdx.input.isKeyPressed(Input.Keys.R)) {
-            cam = newCamera();
+            mainCam = newCamera();
         }
 
     }
@@ -220,7 +238,7 @@ public class ParticlesModel extends ApplicationAdapter {
     private OrthographicCamera newCamera() {
         OrthographicCamera cam = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         cam.position.set(cam.viewportWidth/2, cam.viewportHeight/2, 0);
-        cam.zoom *= 1.01; //to see outline
+        cam.zoom *= 1.005; //to see outline
         return cam;
     }
 
