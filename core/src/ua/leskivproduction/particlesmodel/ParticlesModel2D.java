@@ -176,7 +176,6 @@ public class ParticlesModel2D extends ApplicationAdapter {
                 b.updatePosition(rollBackTime);
                 b.constrainPosition();
             }
-
             enqueueEventsFor(a);
             enqueueEventsFor(b);
 
