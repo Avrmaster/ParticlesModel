@@ -170,10 +170,10 @@ public class ParticlesModel2D extends ApplicationAdapter {
                     break;
             }
 
-            a.updatePosition(-rollBackTime);
+            a.updatePosition(rollBackTime);
             a.constrainPosition();
             if (b != null) {
-                b.updatePosition(-rollBackTime);
+                b.updatePosition(rollBackTime);
                 b.constrainPosition();
             }
 
@@ -208,7 +208,7 @@ public class ParticlesModel2D extends ApplicationAdapter {
     private void drawParticles() {
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
-        shapeRenderer.setColor(Color.BLUE);
+//        shapeRenderer.setColor(Color.BLUE);
 
         int counter = 0;
         for (Particle2D p : particles) {
@@ -216,6 +216,7 @@ public class ParticlesModel2D extends ApplicationAdapter {
             float y = p.getY();
             float radius =  p.getRadius();
 
+            shapeRenderer.setColor(0, (float)p.getNumber()/particles.length, 1-(float)p.getNumber()/particles.length, 1);
             shapeRenderer.circle(x, y, radius);
 
             if (DEBUG) {
@@ -272,5 +273,7 @@ public class ParticlesModel2D extends ApplicationAdapter {
 	@Override
 	public void dispose () {
 		batch.dispose();
+		shapeRenderer.dispose();
+		font.dispose();
 	}
 }
