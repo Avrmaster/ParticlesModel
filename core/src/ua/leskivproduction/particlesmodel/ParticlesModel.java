@@ -10,8 +10,11 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import ua.leskivproduction.particlesmodel.Model.ModelEvent;
-import ua.leskivproduction.particlesmodel.Model.Particle;
+import ua.leskivproduction.particlesmodel.Model.Particle2D;
 import ua.leskivproduction.particlesmodel.utils.MinQueue;
+
+
+import static ua.leskivproduction.particlesmodel.Model.ModelEvent.CollisionTypes.*;
 
 
 public class ParticlesModel extends ApplicationAdapter {
@@ -21,58 +24,57 @@ public class ParticlesModel extends ApplicationAdapter {
 
 	private ShapeRenderer shapeRenderer;
 	private OrthographicCamera mainCam;
-	private OrthographicCamera epicCam;
 	private SpriteBatch batch;
     private BitmapFont font;
 
-    private final static int PARTICLES_COUNT = 300;
-    private final static int MAX_COMPUTATIONS_PER_FRAME = 100;
+    private final static int PARTICLES_COUNT = 3000;
+//    private final static int MAX_COMPUTATIONS_PER_FRAME = 5000;
 
 
     private final MinQueue<ModelEvent> eventMinQueue = new MinQueue<ModelEvent>((int)(PARTICLES_COUNT*Math.log(PARTICLES_COUNT)));
-    private final Particle[] particles = new Particle[PARTICLES_COUNT];
+    private final Particle2D[] particles = new Particle2D[PARTICLES_COUNT];
 
-    private float timeWarp = 3;
+    private float timeWarp = 1f;
 
 	@Override
 	public void create () {
         batch = new SpriteBatch();
         shapeRenderer = new ShapeRenderer();
         mainCam = newCamera();
-        epicCam = newCamera();
 
         font = new BitmapFont(Gdx.files.internal("core/assets/font.fnt"),
                 Gdx.files.internal("core/assets/font.png"), false);
         font.setColor(Color.WHITE);
 
-        Particle.setScreenWidth(Gdx.graphics.getWidth());
-        Particle.setScreenHeight(Gdx.graphics.getHeight());
+        final int screenWidth = Gdx.graphics.getWidth();
+        final int screenHeight = Gdx.graphics.getHeight();
 
         for (int i = 0; i < particles.length; i++) {
-            particles[i] = new Particle(i, PARTICLES_COUNT);
-            enqueueEventsFor(particles[i]);
-            System.out.println("Loading.. "+((i+1)*100/PARTICLES_COUNT));
+            particles[i] = new Particle2D(i, PARTICLES_COUNT, screenWidth, screenHeight);
         }
+        for (int i = 0; i < particles.length; i++) {
+            enqueueEventsFor(particles[i]);
+        }
+
 	}
 
 
-    private double time;
-	private void enqueueEventsFor(Particle p) {
+    private double modelTime;
+	private void enqueueEventsFor(Particle2D p) {
 	    if (p == null)
 	        return;
-	    for (Particle b : particles) {
-            if (b != null) {
-                enqueueEvent(new ModelEvent(time+p.timeToHit(b), b, p));
-            }
+        enqueueEvent(new ModelEvent(modelTime +p.timeToHitHorizontalWall(), p, HORIZONTAL_WALL));
+        enqueueEvent(new ModelEvent(modelTime +p.timeToHitVerticalWall(), p, VERTICAL_WALL));
+
+        for (Particle2D b : particles) {
+            enqueueEvent(new ModelEvent(modelTime +p.timeToHit(b), p, b));
         }
-        enqueueEvent(new ModelEvent(time+p.timeToHitHorizontalWall(), p, null));
-        enqueueEvent(new ModelEvent(time+p.timeToHitVerticalWall(), null, p));
     }
 
     private void enqueueEvent(ModelEvent e) {
-	    if (e.getTime() != Double.POSITIVE_INFINITY) {
-	        eventMinQueue.add(e);
-        }
+	    if (e.time != Double.POSITIVE_INFINITY) {
+            eventMinQueue.add(e);
+	    }
     }
 
 	@Override
@@ -87,75 +89,91 @@ public class ParticlesModel extends ApplicationAdapter {
         Gdx.gl.glDisable(GL20.GL_BLEND);
 
 
-
-
         OrthographicCamera currentCam = mainCam;
         if (Gdx.input.isKeyPressed(Input.Keys.G)) {
-            Particle tracked = particles[0];
+            Particle2D tracked = particles[0];
             currentCam = newCamera();
             currentCam.translate(tracked.getX()-Gdx.graphics.getWidth()/2, tracked.getY()-Gdx.graphics.getHeight()/2);
-            currentCam.zoom = 0.2f;
+            currentCam.zoom = 20*tracked.getRadius()/(Gdx.graphics.getWidth());
         }
 
         currentCam.update();
         batch.setProjectionMatrix(currentCam.combined);
         shapeRenderer.setProjectionMatrix(currentCam.combined);
 
-//        float deltaTime = Gdx.graphics.getDeltaTime()*timeWarp;
-        float deltaTime = 0.001f;
+        float deltaTime = Math.min(0.3f, Gdx.graphics.getDeltaTime()*timeWarp);
 
         if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
             deltaTime /= 20;
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.V)) {
+            deltaTime *= 40;
         }
         if (Gdx.input.isKeyPressed(Input.Keys.P)) {
             deltaTime = 0;
         }
 
-        time += deltaTime;
+        modelTime += deltaTime;
 
-        int performedCnt = 0;
-        System.out.println("Queue size: "+eventMinQueue.size());
-        while (eventMinQueue.size() > 0 && ++performedCnt < MAX_COMPUTATIONS_PER_FRAME) {
+        batch.begin();
+        font.draw(batch, ""+modelTime+"",
+                currentCam.position.x-currentCam.viewportWidth/2,
+                (int)(currentCam.position.y-0.95*(currentCam.viewportHeight/2)));
+        batch.end();
+
+
+        for (Particle2D p : particles) {
+            p.updatePosition(deltaTime);
+            boolean smthChanged = p.constrainPosition();
+            if (smthChanged)
+                enqueueEventsFor(p);
+        }
+
+        drawParticles();
+
+        while (eventMinQueue.size() > 0) {
             ModelEvent event = eventMinQueue.getMin();
 
-            if (event.getTime() > time)
+            if (!event.isValid()) {
+                eventMinQueue.removeMin();
+                continue;
+            }
+
+//            if (event.isValid())
+//                System.out.println("Upcoming: "+event);
+
+            if (event.time > modelTime)
                 break;
 
-            if (event.isValid()) {
-                Particle a = event.getA();
-                Particle b = event.getB();
+            Particle2D a = event.a;
+            Particle2D b = event.b;
+            a.updatePosition(event.time-modelTime);
+            if (b != null)
+                b.updatePosition(event.time-modelTime);
 
-                if (a != null)
-                    a.update(event.getTime()-time);
-                if (b != null)
-                    b.update(event.getTime()-time);
-
-                if (a != null && b == null) {
-                    a.bounceOffHorizontalWall();
-                } else if (b != null && a == null) {
-                    b.bounceOffVerticalWall();
-                } else if (a != null){ //&& b != null
+            switch (event.type) {
+                case PARTICLES:
                     a.bounceOff(b);
-                }
-
-                if (a != null) {
-                    a.update(time-event.getTime());
-                }
-                if (b != null) {
-                    b.update(time-event.getTime());
-                }
-
-                enqueueEventsFor(a);
-                enqueueEventsFor(b);
+                    break;
+                case HORIZONTAL_WALL:
+                    a.bounceOffHorizontalWall();
+                    break;
+                case VERTICAL_WALL:
+                    a.bounceOffVerticalWall();
+                    break;
             }
+
+//                a.updatePosition(modelTime-event.time);
+//                if (b != null) {
+//                    b.updatePosition(modelTime-event.time);
+//                }
+
+            enqueueEventsFor(a);
+            enqueueEventsFor(b);
 
             eventMinQueue.removeMin();
         }
 
-        for (Particle p : particles)
-            p.update(deltaTime);
-
-        drawParticles();
         drawOutline();
 	}
 
@@ -184,7 +202,7 @@ public class ParticlesModel extends ApplicationAdapter {
         shapeRenderer.setColor(Color.BLUE);
 
         int counter = 0;
-        for (Particle p : particles) {
+        for (Particle2D p : particles) {
             float x = p.getX();
             float y = p.getY();
             float radius =  p.getRadius();

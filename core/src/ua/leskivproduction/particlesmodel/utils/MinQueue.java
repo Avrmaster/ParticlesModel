@@ -100,11 +100,15 @@ class Tester {
         System.out.println(queue);
         queue.add(3);
         queue.add(4);
+        queue.add(-7);
+        queue.add(-7);
         queue.add(7);
         queue.add(6);
         queue.add(2);
+        queue.add(-15);
         queue.add(8);
         queue.add(9);
+        queue.add(-10);
         queue.add(10);
         queue.add(1);
         queue.add(0);
@@ -112,6 +116,10 @@ class Tester {
 
         System.out.println(queue);
         System.out.println("Size: "+queue.size());
+        System.out.println(queue.removeMin());
+        System.out.println(queue.removeMin());
+        System.out.println(queue.removeMin());
+        System.out.println(queue.removeMin());
         System.out.println(queue.removeMin());
         System.out.println(queue.removeMin());
         System.out.println(queue.removeMin());

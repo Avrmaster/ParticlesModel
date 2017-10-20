@@ -1,61 +1,67 @@
 package ua.leskivproduction.particlesmodel.Model;
 
-public class ModelEvent implements Comparable<ModelEvent> {
-    private double t;
-    private Particle a, b; // particles involved in event
-    private int countA, countB; // collision counts for a and b
+import com.sun.istack.internal.NotNull;
 
-    public ModelEvent(double t, Particle a, Particle b) {
+public class ModelEvent implements Comparable<ModelEvent> {
+    public final double time;
+    public final Particle2D a, b; // particles involved in event
+    public final int initCountA, initCountB; // collision counts for a and b
+    public final CollisionTypes type;
+
+    public enum CollisionTypes {
+        PARTICLES,
+        HORIZONTAL_WALL,
+        VERTICAL_WALL,
+        DEPTH_WALL
+    }
+
+    public ModelEvent(double t, @NotNull Particle2D a, CollisionTypes type) {
+        this.time = t;
+        this.a = a;
+        this.initCountA = a.getCollisionsCount();
+        if (type != CollisionTypes.PARTICLES)
+            this.type = type;
+        else
+            throw new IllegalArgumentException("You cannot specify particles collision event with only 1 particle! ");
+
+        this.b = null;
+        this.initCountB = -1;
+    }
+
+    public ModelEvent(double t, @NotNull Particle2D a, @NotNull Particle2D b) {
+        this.time = t;
         this.a = a;
         this.b = b;
-        if (a != null)
-            this.countA = a.getCount();
-        if (b != null)
-            this.countB = b.getCount();
-        this.t = t;
+        this.initCountA = a.getCollisionsCount();
+        this.initCountB = b.getCollisionsCount();
+        this.type = CollisionTypes.PARTICLES;
     }
 
     public boolean isValid() {
-        boolean isValid = true;
-
-        if (a != null) {
-            if (countA != a.getCount())
-                isValid = false;
-        }
-        if (b != null) {
-            if (countB != b.getCount())
-                isValid = false;
-        }
-
-        return isValid;
-    }
-
-    public double getTime() {
-        return t;
-    }
-
-    public Particle getA() {
-        return a;
-    }
-
-    public Particle getB() {
-        return b;
+        return (initCountA == a.getCollisionsCount() && (b == null || initCountB == b.getCollisionsCount()));
     }
 
     @Override
     public String toString() {
-        if (a == null && b == null) {
-            return "reset event at "+t;
+        StringBuilder builder = new StringBuilder();
+        if (type == CollisionTypes.PARTICLES) {
+            builder.append("Particles collision between ");
+            builder.append(a);
+            builder.append( " and ");
+            builder.append(b);
+        } else {
+            builder.append(type);
+            builder.append(" collision of ");
+            builder.append(a);
         }
-        if (a == null || b == null) {
-            return (a != null? a : b) + "bounce wall event at "+t;
-        }
-        return "bounce " + a.number + " and " + b.number + " event at "+t;
+        builder.append(" at ");
+        builder.append(time);
+        return builder.toString();
     }
 
     @Override
     public int compareTo(ModelEvent that) {
-        double dt = this.t - that.t;
+        double dt = this.time - that.time;
         if (dt < 0)
             return -1;
         if (dt > 0)
