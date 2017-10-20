@@ -2,7 +2,7 @@ package ua.leskivproduction.particlesmodel.desktop;
 
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
-import ua.leskivproduction.particlesmodel.ParticlesModel;
+import ua.leskivproduction.particlesmodel.ParticlesModel2D;
 
 import java.awt.*;
 
@@ -22,6 +22,6 @@ public class DesktopLauncher {
 //        cfg.width = screenSize.width/2;
 //        cfg.height = screenSize.height/2;
 
-		new LwjglApplication(new ParticlesModel(), cfg);
+		new LwjglApplication(new ParticlesModel2D(), cfg);
 	}
 }

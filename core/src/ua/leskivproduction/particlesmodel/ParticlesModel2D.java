@@ -14,10 +14,13 @@ import ua.leskivproduction.particlesmodel.Model.Particle2D;
 import ua.leskivproduction.particlesmodel.utils.MinQueue;
 
 
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
+
 import static ua.leskivproduction.particlesmodel.Model.ModelEvent.CollisionTypes.*;
 
 
-public class ParticlesModel extends ApplicationAdapter {
+public class ParticlesModel2D extends ApplicationAdapter {
 
 //    private final static boolean DEBUG = true;
     private final static boolean DEBUG = false;
@@ -27,7 +30,7 @@ public class ParticlesModel extends ApplicationAdapter {
 	private SpriteBatch batch;
     private BitmapFont font;
 
-    private final static int PARTICLES_COUNT = 3000;
+    private final static int PARTICLES_COUNT = 500;
 //    private final static int MAX_COMPUTATIONS_PER_FRAME = 5000;
 
 
@@ -81,13 +84,16 @@ public class ParticlesModel extends ApplicationAdapter {
 	public void render () {
         handleInput();
 
-	    Gdx.gl.glClearColor(0, 0, 0, 1);
-		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
-        Gdx.gl.glDisable(GL20.GL_BLEND);
 
+//	    Gdx.gl.glClearColor(0, 0, 0, 0.2f);
+//		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(0, 0, 0, 0.2f);
+        shapeRenderer.rect(-25000, -25000, 50000, 50000);
+        shapeRenderer.end();
 
         OrthographicCamera currentCam = mainCam;
         if (Gdx.input.isKeyPressed(Input.Keys.G)) {
@@ -106,8 +112,8 @@ public class ParticlesModel extends ApplicationAdapter {
         if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
             deltaTime /= 20;
         }
-        if (Gdx.input.isKeyPressed(Input.Keys.V)) {
-            deltaTime *= 40;
+        if (Gdx.input.isKeyPressed(Input.Keys.S)) {
+            deltaTime *= 20;
         }
         if (Gdx.input.isKeyPressed(Input.Keys.P)) {
             deltaTime = 0;
@@ -116,9 +122,7 @@ public class ParticlesModel extends ApplicationAdapter {
         modelTime += deltaTime;
 
         batch.begin();
-        font.draw(batch, ""+modelTime+"",
-                currentCam.position.x-currentCam.viewportWidth/2,
-                (int)(currentCam.position.y-0.95*(currentCam.viewportHeight/2)));
+        font.draw(batch, new DecimalFormat("##.#").format(modelTime), 0, (float)(Gdx.graphics.getHeight()*0.015));
         batch.end();
 
 
@@ -147,9 +151,12 @@ public class ParticlesModel extends ApplicationAdapter {
 
             Particle2D a = event.a;
             Particle2D b = event.b;
-            a.updatePosition(event.time-modelTime);
+
+            double rollBackTime = event.time-modelTime;
+
+            a.updatePosition(rollBackTime);
             if (b != null)
-                b.updatePosition(event.time-modelTime);
+                b.updatePosition(rollBackTime);
 
             switch (event.type) {
                 case PARTICLES:
@@ -163,10 +170,12 @@ public class ParticlesModel extends ApplicationAdapter {
                     break;
             }
 
-//                a.updatePosition(modelTime-event.time);
-//                if (b != null) {
-//                    b.updatePosition(modelTime-event.time);
-//                }
+            a.updatePosition(-rollBackTime);
+            a.constrainPosition();
+            if (b != null) {
+                b.updatePosition(-rollBackTime);
+                b.constrainPosition();
+            }
 
             enqueueEventsFor(a);
             enqueueEventsFor(b);
