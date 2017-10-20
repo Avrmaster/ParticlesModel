@@ -79,7 +79,7 @@ public class Particle {
     public double timeToHitVerticalWall() {
         if (vx == 0)
             return POSITIVE_INFINITY;
-
+        
         if (vx > 0) {
             return (SCREEN_WIDTH - radius - x) / vx;
         } else {
