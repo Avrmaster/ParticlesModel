@@ -1,43 +1,46 @@
 package ua.leskivproduction.particlesmodel.Model;
 
 import static java.lang.Double.POSITIVE_INFINITY;
+import static java.lang.Math.abs;
 
 public class Particle {
 
     private final static double MAX_SPEED = 0.5/7;
 
+    public final int number;
     private double x, y;
     private double vx, vy;
     private final double radius;
     private int count;
 
-    public static int SCREEN_WIDTH;
-    public static int SCREEN_HEIGHT;
+    private static int SCREEN_WIDTH;
+    private static int SCREEN_HEIGHT;
 
-    public Particle(final int PARTICLES_COUNT) {
+    public static void setScreenWidth(int screenWidth) {
+        if (screenWidth > 0)
+            SCREEN_WIDTH = screenWidth;
+    }
+    public static void setScreenHeight(int screenHeight) {
+        if (screenHeight > 0)
+            SCREEN_HEIGHT = screenHeight;
+    }
+
+    public Particle(final int partN, final int PARTICLES_COUNT) {
         if (SCREEN_WIDTH <= 0 || SCREEN_HEIGHT <= 0)
             throw new NullPointerException("Initialize SCREEN_WIDTH and SCREEN_HEIGHT with positive integers first!");
+
+        this.number = partN;
 
         this.x = SCREEN_WIDTH*(Math.random()*0.4+0.3);
         this.y = SCREEN_HEIGHT*(Math.random()*0.4+0.3);
         this.vx = SCREEN_WIDTH*(Math.random()-0.5)/7;
         this.vy = SCREEN_HEIGHT*(Math.random()-0.5)/7;
-        this.radius = SCREEN_WIDTH*Math.min(0.02, Math.random()/(PARTICLES_COUNT));
-
+        this.radius = SCREEN_WIDTH*Math.min(0.02, 10*Math.random()/PARTICLES_COUNT);
     }
 
     public void update(double deltaTime) {
         x += vx*deltaTime;
         y += vy*deltaTime;
-
-        if (x < 0)
-            x = 0;
-        if (y < 0)
-            y = 0;
-        if (x > SCREEN_WIDTH)
-            x = SCREEN_WIDTH;
-        if (y > SCREEN_HEIGHT)
-            y = SCREEN_HEIGHT;
     }
 
     public double timeToHit(Particle that) {
@@ -69,21 +72,27 @@ public class Particle {
         if (vy == 0)
             return POSITIVE_INFINITY;
 
+        if (y - radius <= 0 || y >= SCREEN_HEIGHT-radius)
+            return 0;
+
         if (vy > 0) {
             return (SCREEN_HEIGHT - radius - y) / vy;
         } else {
-            return (+radius - y) / vy;
+            return (radius - y) / vy;
         }
     }
 
     public double timeToHitVerticalWall() {
         if (vx == 0)
             return POSITIVE_INFINITY;
-        
+
+        if (x - radius <= 0 || x >= SCREEN_WIDTH-radius)
+            return 0;
+
         if (vx > 0) {
             return (SCREEN_WIDTH - radius - x) / vx;
         } else {
-            return (+radius - x) / vx;
+            return (radius - x) / vx;
         }
     }
 
@@ -148,5 +157,10 @@ public class Particle {
 
     public int getCount() {
         return count;
+    }
+
+    @Override
+    public String toString() {
+        return "Particle №"+number;
     }
 }

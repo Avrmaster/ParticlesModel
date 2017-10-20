@@ -24,11 +24,13 @@ public class ParticlesModel extends ApplicationAdapter {
 	private SpriteBatch batch;
     private BitmapFont font;
 
-    private final static int PARTICLES_COUNT = 200;
-    private final static int MAX_COMPUTATIONS_PER_FRAME = 30000;
+    private final static int PARTICLES_COUNT = 1000;
+    private final static int MAX_COMPUTATIONS_PER_FRAME = 3000;
 
-    private final MinQueue<ModelEvent> eventMinQueue = new MinQueue<ModelEvent>();
+    private final MinQueue<ModelEvent> eventMinQueue = new MinQueue<ModelEvent>((int)(PARTICLES_COUNT*Math.log(PARTICLES_COUNT)));
     private final Particle[] particles = new Particle[PARTICLES_COUNT];
+
+    private float timeWarp = 1;
 
 	@Override
 	public void create () {
@@ -40,12 +42,11 @@ public class ParticlesModel extends ApplicationAdapter {
                 Gdx.files.internal("core/assets/font.png"), false);
         font.setColor(Color.WHITE);
 
-        Particle.SCREEN_WIDTH = Gdx.graphics.getWidth();
-        Particle.SCREEN_HEIGHT = Gdx.graphics.getHeight();
-
+        Particle.setScreenWidth(Gdx.graphics.getWidth());
+        Particle.setScreenHeight(Gdx.graphics.getHeight());
 
         for (int i = 0; i < particles.length; i++) {
-            particles[i] = new Particle(PARTICLES_COUNT);
+            particles[i] = new Particle(i, PARTICLES_COUNT);
             enqueueEventsFor(particles[i]);
             System.out.println("Loading.. "+((i+1)*100/PARTICLES_COUNT));
         }
@@ -78,15 +79,15 @@ public class ParticlesModel extends ApplicationAdapter {
 	    Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        Gdx.gl.glEnable(GL20.GL_BLEND);
-        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
-        Gdx.gl.glDisable(GL20.GL_BLEND);
+//        Gdx.gl.glEnable(GL20.GL_BLEND);
+//        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+//        Gdx.gl.glDisable(GL20.GL_BLEND);
 
         cam.update();
         batch.setProjectionMatrix(cam.combined);
         shapeRenderer.setProjectionMatrix(cam.combined);
 
-        float deltaTime = Gdx.graphics.getDeltaTime();
+        float deltaTime = Gdx.graphics.getDeltaTime()*timeWarp;
 
         if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
             deltaTime /= 20;
@@ -99,6 +100,8 @@ public class ParticlesModel extends ApplicationAdapter {
         for (int i = 0; i < particles.length; i++) {
             particles[i].update(deltaTime);
         }
+
+        System.out.println("Queue size: "+eventMinQueue.size());
 
         int performedCnt = 0;
         while (eventMinQueue.size() > 0 && ++performedCnt < MAX_COMPUTATIONS_PER_FRAME) {
@@ -171,7 +174,7 @@ public class ParticlesModel extends ApplicationAdapter {
 
             if (DEBUG) {
                 batch.begin();
-                font.draw(batch, ""+(++counter)+"", x+radius, y);
+                font.draw(batch, ""+(counter++)+"", x+radius, y);
                 batch.end();
             }
         }

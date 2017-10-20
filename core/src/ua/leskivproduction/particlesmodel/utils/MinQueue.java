@@ -8,7 +8,11 @@ public class MinQueue<E extends Comparable<E>> {
     private E[] arr;
 
     public MinQueue() {
-        arr = (E[])new Comparable[0];
+        this(0);
+    }
+
+    public MinQueue(int potential_size) {
+        arr = (E[])new Comparable[potential_size];
     }
 
     public void add(E item) {

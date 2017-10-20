@@ -15,11 +15,12 @@ public class DesktopLauncher {
 
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
-//        cfg.width = 1920;
-//        cfg.width = 1920;
         cfg.width = screenSize.width;
         cfg.height = screenSize.height;
         cfg.fullscreen=true;
+//
+//        cfg.width = screenSize.width/2;
+//        cfg.height = screenSize.height/2;
 
 		new LwjglApplication(new ParticlesModel(), cfg);
 	}

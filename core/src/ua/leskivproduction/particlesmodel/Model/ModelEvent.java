@@ -48,9 +48,9 @@ public class ModelEvent implements Comparable<ModelEvent> {
             return "reset event at "+t;
         }
         if (a == null || b == null) {
-            return "bounce wall event at "+t;
+            return (a != null? a : b) + "bounce wall event at "+t;
         }
-        return "particle bounce event at "+t;
+        return "bounce " + a.number + " and " + b.number + " event at "+t;
     }
 
     @Override
