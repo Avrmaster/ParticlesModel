@@ -27,6 +27,7 @@ public class ParticlesModel extends ApplicationAdapter {
     private final static int PARTICLES_COUNT = 1000;
     private final static int MAX_COMPUTATIONS_PER_FRAME = 3000;
 
+
     private final MinQueue<ModelEvent> eventMinQueue = new MinQueue<ModelEvent>((int)(PARTICLES_COUNT*Math.log(PARTICLES_COUNT)));
     private final Particle[] particles = new Particle[PARTICLES_COUNT];
 
