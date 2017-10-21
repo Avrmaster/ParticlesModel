@@ -6,7 +6,7 @@ import ua.leskivproduction.particlesmodel.ParticlesModel2D;
 
 import java.awt.*;
 
-public class DesktopLauncher {
+public class DesktopLauncher2D {
 	public static void main (String[] arg) {
 		LwjglApplicationConfiguration cfg = new LwjglApplicationConfiguration();
 
