@@ -5,21 +5,21 @@ import static java.lang.Math.sqrt;
 
 public class Particle2D {
 
-    private final static double WALL_BOUNCE_COEF = 0.98;
-    private final static double MAX_ORTH_SPEED = 0.3;
+    protected final static double WALL_BOUNCE_COEF = 0.98;
+    protected final static double MAX_ORTH_SPEED = 0.3;
 
-    private final int number;
-    private double x, y;
-    private double vx, vy;
-    private final double radius;
-    private int collisionsCount;
+    protected final int number;
+    protected double x, y;
+    protected double vx, vy;
+    protected final double radius;
+    protected int collisionsCount;
 
-    private final int BORDER_X;
-    private final int BORDER_Y;
+    protected final int BORDER_X;
+    protected final int BORDER_Y;
 
     public Particle2D(final int partN, final int PARTICLES_COUNT, final int MAX_X, final int MAX_Y) {
         if (MAX_X <= 0 || MAX_Y <= 0)
-            throw new NullPointerException("Initialize BORDER_X and BORDER_Y with positive integers first!");
+            throw new NullPointerException("MAX_X and MAX_Y must be positive integers!");
 
         BORDER_X = MAX_X;
         BORDER_Y = MAX_Y;
@@ -39,7 +39,7 @@ public class Particle2D {
     }
 
 
-    private void constrainSpeed() {
+    protected void constrainSpeed() {
         double maxSpeed = MAX_ORTH_SPEED * BORDER_X;
 
         if (Math.abs(vx) > maxSpeed)
@@ -119,7 +119,7 @@ public class Particle2D {
      * @param orthLength - the length of the perpendicular
      * @return time to hit wall depending on direction
      */
-    private double timeToHitWall(double orthPos, double orthSpeed, double orthLength) {
+    protected double timeToHitWall(double orthPos, double orthSpeed, double orthLength) {
         if (orthSpeed == 0)
             return POSITIVE_INFINITY;
         if (orthSpeed > 0)
@@ -166,7 +166,7 @@ public class Particle2D {
     }
 
     public float getX() {
-        return (float) x;
+        return (float)x;
     }
 
     public float getY() {
