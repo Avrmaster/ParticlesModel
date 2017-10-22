@@ -102,17 +102,16 @@ public class ParticlesModel2D extends ApplicationAdapter {
             currentCam.update();
             batch.setProjectionMatrix(currentCam.combined);
             shapeRenderer.setProjectionMatrix(currentCam.combined);
+        }
 
-
-            if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
-                deltaTime /= 20;
-            }
-            if (Gdx.input.isKeyPressed(Input.Keys.S)) {
-                deltaTime *= 20;
-            }
-            if (Gdx.input.isKeyPressed(Input.Keys.P)) {
-                deltaTime = 0;
-            }
+        if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
+            deltaTime /= 20;
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.S)) {
+            deltaTime *= 20;
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.P)) {
+            deltaTime = 0;
         }
 
         modelTime += deltaTime;

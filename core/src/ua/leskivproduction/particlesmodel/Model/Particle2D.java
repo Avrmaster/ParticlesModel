@@ -1,7 +1,6 @@
 package ua.leskivproduction.particlesmodel.Model;
 
 import static java.lang.Double.POSITIVE_INFINITY;
-import static java.lang.Math.sqrt;
 
 public class Particle2D {
 
@@ -11,7 +10,7 @@ public class Particle2D {
     protected final int number;
     protected double x, y;
     protected double vx, vy;
-    protected final double radius;
+    protected double radius;
     protected int collisionsCount;
 
     protected final int BORDER_X;

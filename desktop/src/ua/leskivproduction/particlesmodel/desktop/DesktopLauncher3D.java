@@ -18,7 +18,7 @@ public class DesktopLauncher3D {
         cfg.width = screenSize.width;
         cfg.height = screenSize.height;
         cfg.fullscreen=true;
-//
+
 //        cfg.width = screenSize.width/2;
 //        cfg.height = screenSize.height/2;
 

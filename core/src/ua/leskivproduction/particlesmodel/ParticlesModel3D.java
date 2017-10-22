@@ -1,18 +1,18 @@
 package ua.leskivproduction.particlesmodel;
 
 import com.badlogic.gdx.ApplicationAdapter;
-import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.PerspectiveCamera;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.VertexAttributes;
+import com.badlogic.gdx.Input;
+import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.graphics.*;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
-import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.FloatAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
+import com.badlogic.gdx.graphics.g3d.environment.PointLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import ua.leskivproduction.particlesmodel.Model.ModelEvent;
@@ -20,44 +20,50 @@ import ua.leskivproduction.particlesmodel.Model.Particle2D;
 import ua.leskivproduction.particlesmodel.Model.Particle3D;
 import ua.leskivproduction.particlesmodel.utils.MinQueue;
 
-import java.awt.*;
-
 import static ua.leskivproduction.particlesmodel.Model.ModelEvent.CollisionTypes.DEPTH_WALL;
 import static ua.leskivproduction.particlesmodel.Model.ModelEvent.CollisionTypes.HORIZONTAL_WALL;
 import static ua.leskivproduction.particlesmodel.Model.ModelEvent.CollisionTypes.VERTICAL_WALL;
 
 public class ParticlesModel3D extends ApplicationAdapter {
 
-    PerspectiveCamera mainCam;
-    CameraInputController camController;
-    ModelBatch modelBatch;
+    private CameraInputController camController;
+    private PerspectiveCamera mainCam;
+    private ModelBatch modelBatch;
+    private Environment environment;
 
-    private final static int PARTICLES_COUNT = 5000;
+    private final static int PARTICLES_COUNT = 2000;
     private final MinQueue<ModelEvent> eventMinQueue = new MinQueue<ModelEvent>((int)(PARTICLES_COUNT*Math.log(PARTICLES_COUNT)));
     private Particle3D[] particles;
 
-    private float timeWarp = 1f;
+    private float timeWarp = 0.2f;
 
+    private Music backgroundMusic;
 
     @Override
     public void create() {
         modelBatch = new ModelBatch();
 
+        backgroundMusic = Gdx.audio.newMusic(Gdx.files.internal("core/assets/earthsong.mp3"));
+
         int screenWidth = Gdx.graphics.getWidth();
         int screenHeight = Gdx.graphics.getHeight();
         int screenDepth = Math.max(screenWidth, screenHeight);
 
-        mainCam = new PerspectiveCamera(75, screenWidth, screenHeight);
-        mainCam.position.set(screenDepth*1.2f, screenDepth*1.2f, screenDepth*1.2f);
-        mainCam.lookAt(screenWidth/2, screenHeight/2, screenDepth/2);
-        mainCam.near = 0.1f;
-        mainCam.far = screenDepth*2;
-        mainCam.update();
+        environment = new Environment();
+        Color color = Color.WHITE;
+        int intencity = 1000000;
+        environment.add(new PointLight().set(color, 0, 0, 0, intencity));
+        environment.add(new PointLight().set(color, screenWidth, 0, 0, intencity));
+        environment.add(new PointLight().set(color, 0, screenHeight, 0, intencity));
+//        environment.add(new PointLight().set(color, 0, 0, screenDepth, intencity));
+//        environment.add(new PointLight().set(color, screenWidth, screenHeight, 0, intencity));
+//        environment.add(new PointLight().set(color, screenWidth, 0, screenDepth, intencity));
+//        environment.add(new PointLight().set(color, 0, screenHeight, screenDepth, intencity));
+        environment.add(new PointLight().set(color, screenWidth, screenHeight, screenDepth, intencity));
+        environment.add(new PointLight().set(color, screenWidth/2, screenHeight/2, screenDepth/2, intencity));
 
-        camController = new CameraInputController(mainCam);
-        System.out.println(camController.pinchZoomFactor);
 
-        Gdx.input.setInputProcessor(camController);
+        mainCam = newPerspectiveCamera();
 
         spawnParticles(screenWidth, screenHeight, screenDepth);
     }
@@ -87,9 +93,9 @@ public class ParticlesModel3D extends ApplicationAdapter {
         enqueueEvent(new ModelEvent(modelTime +p.timeToHitVerticalWall(), p, VERTICAL_WALL));
         enqueueEvent(new ModelEvent(modelTime +p.timeToHitDepthWall(), p, DEPTH_WALL));
 
-//        for (Particle3D b : particles) {
-//            enqueueEvent(new ModelEvent(modelTime +p.timeToHit(b), p, b));
-//        }
+        for (Particle3D b : particles) {
+            enqueueEvent(new ModelEvent(modelTime +p.timeToHit(b), p, b));
+        }
     }
 
 
@@ -99,8 +105,11 @@ public class ParticlesModel3D extends ApplicationAdapter {
         }
     }
 
+    private float musicVolume = 0;
+
     @Override
     public void render() {
+        handleInput();
         Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
         Gdx.gl.glEnable(GL20.GL_BLEND);
@@ -109,6 +118,15 @@ public class ParticlesModel3D extends ApplicationAdapter {
 
         float deltaTime = Gdx.graphics.getDeltaTime() * timeWarp;
 
+        if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
+            deltaTime /= 20;
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.S)) {
+            deltaTime *= 20;
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.P)) {
+            deltaTime = 0;
+        }
 
         mainCam.update();
         modelTime += deltaTime;
@@ -121,6 +139,21 @@ public class ParticlesModel3D extends ApplicationAdapter {
         }
 
         drawParticles();
+
+        if (modelTime < 15*timeWarp) {
+            zoom(5);
+            rotate(0.1f);
+        }
+
+        if (musicVolume < 1) {
+            musicVolume += deltaTime;
+            backgroundMusic.setVolume((float)Math.pow(musicVolume, 3));
+        }
+        if (!backgroundMusic.isPlaying()) {
+            backgroundMusic.setLooping(true);
+            backgroundMusic.play();
+            backgroundMusic.setPosition(87.5f);
+        }
 
         while (eventMinQueue.size() > 0) {
             ModelEvent event = eventMinQueue.getMin();
@@ -172,16 +205,90 @@ public class ParticlesModel3D extends ApplicationAdapter {
     }
 
     private void drawBackground() {
-        Gdx.gl.glClearColor(0, 0, 0, 1);
+        Gdx.gl.glClearColor(0, 0, 0, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT|GL20.GL_DEPTH_BUFFER_BIT);
     }
 
     private void drawParticles() {
         modelBatch.begin(mainCam);
         for (Particle2D p2 : particles) {
-            modelBatch.render(((Particle3D)p2).getModelInstance());
+            modelBatch.render(((Particle3D)p2).getModelInstance(), environment);
         }
         modelBatch.end();
+    }
+
+    private  void handleInput() {
+        int dx = Gdx.graphics.getWidth()/100;
+        int dy = Gdx.graphics.getHeight()/100;
+
+        if (Gdx.input.isKeyPressed(Input.Keys.A)) {
+            zoom(-30);
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.Q)) {
+            zoom(30f);
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
+            rotate(-0.5f);
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
+            rotate(0.5f);
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
+//            camController.zoom(10);
+//            camController.touchDragged(0, -100, 1);
+//            camController.scrolled(-10);
+//            camController.mouseMoved(10, 100);
+
+//            System.out.println(mainCam.direction.dst2(mainCam.position));
+//            Vector3 vec = mainCam.direction.sub(mainCam.position);
+//            vec.y *= 1.02;
+//
+//            mainCam.direction.rotate(mainCam.direction.dot(mainCam.position), 0.5f);
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
+//            mainCam.direction.y *= 1.02;
+
+//            mainCam.rotate(-0.5f, -x, -y, z);
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.W)) {
+            mainCam.rotate(-0.5f, 0, 1, 0);
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.E)) {
+            mainCam.rotate(0.5f, 0, 1, 0);
+        }
+
+        if (Gdx.input.isKeyPressed(Input.Keys.R)) {
+            mainCam = newPerspectiveCamera();
+        }
+    }
+
+    private void zoom(float amount) {
+        float dzy = mainCam.direction.y*amount;
+        float dzx = mainCam.direction.x*amount;
+        float dzz = mainCam.direction.z*amount;
+        mainCam.position.add(dzx, dzy, dzz);
+    }
+
+    private void rotate(float amount) {
+        mainCam.rotate(mainCam.direction, amount);
+    }
+
+    private PerspectiveCamera newPerspectiveCamera() {
+        int screenWidth = Gdx.graphics.getWidth();
+        int screenHeight = Gdx.graphics.getHeight();
+        int screenDepth = Math.max(screenWidth, screenHeight);
+
+
+        PerspectiveCamera cam;
+        cam = new PerspectiveCamera(75, screenWidth, screenHeight);
+        cam.position.set(screenDepth*1.2f, screenDepth*1.2f, screenDepth*1.2f);
+        cam.lookAt(screenWidth/2, screenHeight/2, screenDepth/2);
+        cam.near = 0.1f;
+        cam.far = screenDepth*2;
+        cam.update();
+        camController = new CameraInputController(cam);
+        Gdx.input.setInputProcessor(camController);
+        return cam;
     }
 
     @Override

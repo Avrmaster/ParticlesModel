@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
+import static java.lang.Double.POSITIVE_INFINITY;
 
 public class Particle3D extends Particle2D {
 
@@ -17,6 +18,8 @@ public class Particle3D extends Particle2D {
                       ModelBuilder builder, Material material, long modelAttributes) {
         super(partN, PARTICLES_COUNT, MAX_X, MAX_Y);
 
+        radius *= 5;
+
         if (MAX_Z <= 0)
             throw new IllegalArgumentException("BORDER_Z must be positive integer!");
 
@@ -28,21 +31,74 @@ public class Particle3D extends Particle2D {
 //        modelInstance = new ModelInstance(builder.createSphere((float)radius, (float)radius, (float)radius,
 //                24, 24, material, modelAttributes),
 //                (float)x, (float)y, (float)z);
-        modelInstance = new ModelInstance(builder.createSphere((float)radius, (float)radius, (float)radius,
+        modelInstance = new ModelInstance(builder.createSphere(
+                2*(float)radius, 2*(float)radius, 2*(float)radius,
                 24, 24, material, modelAttributes),
                 (float)x,(float)y, (float)z);
     }
 
-    //TODO
     @Override
-    public double timeToHit(Particle2D that) {
-        return super.timeToHit(that);
+    public double timeToHit(Particle2D that2) {
+        Particle3D that = (Particle3D)that2;
+
+        if (this == that)
+            return POSITIVE_INFINITY;
+
+        //position distances
+        double dx = that.x - this.x,
+                dy = that.y - this.y,
+                dz = that.z - this.z;
+
+        //velocities towards each other
+        double dvx = that.vx - this.vx,
+                dvy = that.vy - this.vy,
+                dvz = that.vz - this.vz;
+
+        double dvdr = dx*dvx + dy*dvy + dz*dvz; //delta velocity/distance
+        if (dvdr > 0) //they're not even moving towards each other
+            return POSITIVE_INFINITY;
+
+        double dvdv = dvx*dvx + dvy*dvy + dvz*dvz;
+        double drdr = dx*dx + dy*dy + dz*dz;
+
+        double sigma = this.radius + that.radius;
+
+        double d = (dvdr*dvdr) - dvdv * (drdr - sigma*sigma);
+        if (d < 0) return POSITIVE_INFINITY;
+        return -(dvdr + Math.sqrt(d)) / dvdv;
     }
 
-    //TODO
     @Override
-    public void bounceOff(Particle2D that) {
-        super.bounceOff(that);
+    public void bounceOff(Particle2D that2) {
+        Particle3D that = (Particle3D)that2;
+
+        //we assume, that particle's mass is proportional radius^3
+        double thisM = Math.pow(this.radius*10, 3);
+        double thatM = Math.pow(that.radius*10, 3);
+
+        double dx = that.x - this.x, dy = that.y - this.y, dz = that.z - this.z;
+        double dvx = that.vx - this.vx, dvy = that.vy - this.vy, dvz = that.vz - this.vz;
+
+        double dvdr = dx*dvx + dy*dvy + dz*dvz;
+        double dist = this.radius + that.radius;
+        double J = 2 * thisM * thatM * dvdr / ((thisM + thatM) * dist);
+
+        double Jx = J * dx / dist;
+        double Jy = J * dy / dist;
+        double Jz = J * dz / dist;
+
+        this.vx += Jx / thisM;
+        this.vy += Jy / thisM;
+        this.vz += Jz / thisM;
+        that.vx -= Jx / thatM;
+        that.vy -= Jy / thatM;
+        that.vz -= Jz / thatM;
+
+        this.constrainSpeed();
+        that.constrainSpeed();
+
+        this.collisionsCount++;
+        that.collisionsCount++;
     }
 
     @Override
@@ -76,7 +132,6 @@ public class Particle3D extends Particle2D {
 
         if (smthChanged)
             this.collisionsCount++;
-
         return super.constrainPosition() || smthChanged;
     }
 
