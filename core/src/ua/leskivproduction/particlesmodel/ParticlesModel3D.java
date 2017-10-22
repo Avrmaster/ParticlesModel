@@ -6,6 +6,7 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
@@ -80,8 +81,8 @@ public class ParticlesModel3D extends ApplicationAdapter {
             particles[i] = new Particle3D(i, PARTICLES_COUNT, screenWidth, screenHeight, screenDepth,
                     builder, material, attributes);
         }
-        for (int i = 0; i < particles.length; i++) {
-            enqueueEventsFor(particles[i]);
+        for (Particle3D p : particles) {
+            enqueueEventsFor(p);
         }
     }
 
@@ -234,21 +235,18 @@ public class ParticlesModel3D extends ApplicationAdapter {
             rotate(0.5f);
         }
         if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
-//            camController.zoom(10);
-//            camController.touchDragged(0, -100, 1);
-//            camController.scrolled(-10);
-//            camController.mouseMoved(10, 100);
+            float x = mainCam.position.x;
+            float y = mainCam.position.y;
+            float z = mainCam.position.z;
 
-//            System.out.println(mainCam.direction.dst2(mainCam.position));
-//            Vector3 vec = mainCam.direction.sub(mainCam.position);
-//            vec.y *= 1.02;
-//
-//            mainCam.direction.rotate(mainCam.direction.dot(mainCam.position), 0.5f);
+            mainCam.position.set(x, (float)(y*0.98), z);
         }
         if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
-//            mainCam.direction.y *= 1.02;
+            float x = mainCam.position.x;
+            float y = mainCam.position.y;
+            float z = mainCam.position.z;
 
-//            mainCam.rotate(-0.5f, -x, -y, z);
+            mainCam.position.set(x, (float)(y*1.02), z);
         }
         if (Gdx.input.isKeyPressed(Input.Keys.W)) {
             mainCam.rotate(-0.5f, 0, 1, 0);
