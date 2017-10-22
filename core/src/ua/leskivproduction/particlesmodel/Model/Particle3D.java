@@ -18,7 +18,7 @@ public class Particle3D extends Particle2D {
                       ModelBuilder builder, Material material, long modelAttributes) {
         super(partN, PARTICLES_COUNT, MAX_X, MAX_Y);
 
-        radius *= 5;
+        radius *= 7;
 
         if (MAX_Z <= 0)
             throw new IllegalArgumentException("BORDER_Z must be positive integer!");

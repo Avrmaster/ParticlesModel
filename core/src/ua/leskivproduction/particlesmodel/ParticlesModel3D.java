@@ -143,7 +143,7 @@ public class ParticlesModel3D extends ApplicationAdapter {
 
         if (modelTime < 15*timeWarp) {
             zoom(5);
-            rotate(0.1f);
+            rotate(0.05f);
         }
 
         if (musicVolume < 1) {
