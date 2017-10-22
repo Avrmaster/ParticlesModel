@@ -238,14 +238,12 @@ public class ParticlesModel3D extends ApplicationAdapter {
             float x = mainCam.position.x;
             float y = mainCam.position.y;
             float z = mainCam.position.z;
-
             mainCam.position.set(x, (float)(y*0.98), z);
         }
         if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
             float x = mainCam.position.x;
             float y = mainCam.position.y;
             float z = mainCam.position.z;
-
             mainCam.position.set(x, (float)(y*1.02), z);
         }
         if (Gdx.input.isKeyPressed(Input.Keys.W)) {
