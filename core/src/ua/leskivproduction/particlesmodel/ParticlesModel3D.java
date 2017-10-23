@@ -16,10 +16,12 @@ import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.PointLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
+import com.badlogic.gdx.math.Vector3;
 import ua.leskivproduction.particlesmodel.Model.ModelEvent;
 import ua.leskivproduction.particlesmodel.Model.Particle2D;
 import ua.leskivproduction.particlesmodel.Model.Particle3D;
 import ua.leskivproduction.particlesmodel.utils.MinQueue;
+import ua.leskivproduction.particlesmodel.utils.PerspectiveCameraMover;
 
 import static ua.leskivproduction.particlesmodel.Model.ModelEvent.CollisionTypes.DEPTH_WALL;
 import static ua.leskivproduction.particlesmodel.Model.ModelEvent.CollisionTypes.HORIZONTAL_WALL;
@@ -28,6 +30,7 @@ import static ua.leskivproduction.particlesmodel.Model.ModelEvent.CollisionTypes
 public class ParticlesModel3D extends ApplicationAdapter {
 
     private CameraInputController camController;
+    private PerspectiveCameraMover cameraMover;
     private PerspectiveCamera mainCam;
     private ModelBatch modelBatch;
     private Environment environment;
@@ -52,19 +55,30 @@ public class ParticlesModel3D extends ApplicationAdapter {
 
         environment = new Environment();
         Color color = Color.WHITE;
-        int intencity = 1000000;
-        environment.add(new PointLight().set(color, 0, 0, 0, intencity));
-        environment.add(new PointLight().set(color, screenWidth, 0, 0, intencity));
-        environment.add(new PointLight().set(color, 0, screenHeight, 0, intencity));
+        int intencity = 60000;
+        environment.add(new PointLight().set(color, 10, 10, 10, intencity));
+        environment.add(new PointLight().set(color, screenWidth-10, screenHeight-10, screenDepth-10, intencity));
+//        environment.add(new PointLight().set(color, 0, screenHeight, 0, intencity));
 //        environment.add(new PointLight().set(color, 0, 0, screenDepth, intencity));
 //        environment.add(new PointLight().set(color, screenWidth, screenHeight, 0, intencity));
 //        environment.add(new PointLight().set(color, screenWidth, 0, screenDepth, intencity));
 //        environment.add(new PointLight().set(color, 0, screenHeight, screenDepth, intencity));
-        environment.add(new PointLight().set(color, screenWidth, screenHeight, screenDepth, intencity));
+//        environment.add(new PointLight().set(color, screenWidth, screenHeight, screenDepth, intencity));
+        intencity /= 3;
         environment.add(new PointLight().set(color, screenWidth/2, screenHeight/2, screenDepth/2, intencity));
 
 
         mainCam = newPerspectiveCamera();
+        cameraMover = new PerspectiveCameraMover(mainCam);
+        cameraMover.addCameraEvent(10, 900);
+        cameraMover.addCameraEvent(5, new Vector3(screenWidth, screenHeight, 0));
+//        cameraMover.addCameraEvent(4, 450);
+        cameraMover.addCameraEvent(5,
+                new Vector3(screenWidth/3, screenHeight/3, screenDepth/3),
+                new Vector3(0,0,0));
+        cameraMover.addCameraEvent(2,
+                new Vector3(-screenWidth/3, screenHeight/3, screenDepth/3));
+        cameraMover.addCameraEvent(9, 0);
 
         spawnParticles(screenWidth, screenHeight, screenDepth);
     }
@@ -129,6 +143,7 @@ public class ParticlesModel3D extends ApplicationAdapter {
             deltaTime = 0;
         }
 
+        cameraMover.update(Gdx.graphics.getDeltaTime()); //without timeWarping
         mainCam.update();
         modelTime += deltaTime;
 
@@ -141,10 +156,10 @@ public class ParticlesModel3D extends ApplicationAdapter {
 
         drawParticles();
 
-        if (modelTime < 15*timeWarp) {
-            zoom(5);
-            rotate(0.05f);
-        }
+//        if (modelTime < 15*timeWarp) {
+//            zoom(5);
+//            rotate(0.05f);
+//        }
 
         if (musicVolume < 1) {
             musicVolume += deltaTime;
