@@ -39,8 +39,6 @@ public class PerspectiveCameraMover {
 
             float eventProgress = (cameraTime-nextEvent.startTime)/(nextEvent.duration);
 
-            System.out.println(eventProgress);
-
             Vector3 newPos = copy(nextEvent.initPosition).scl(1f-eventProgress).
                     add(copy(nextEvent.goalPosition).scl(eventProgress));
             camera.position.set(newPos);

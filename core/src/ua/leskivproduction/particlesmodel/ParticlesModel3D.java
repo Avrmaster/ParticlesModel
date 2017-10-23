@@ -55,18 +55,16 @@ public class ParticlesModel3D extends ApplicationAdapter {
 
         environment = new Environment();
         Color color = Color.WHITE;
-        int intencity = 60000;
-        environment.add(new PointLight().set(color, 10, 10, 10, intencity));
-        environment.add(new PointLight().set(color, screenWidth-10, screenHeight-10, screenDepth-10, intencity));
-//        environment.add(new PointLight().set(color, 0, screenHeight, 0, intencity));
+        int intencity = 1000000;
+        environment.add(new PointLight().set(color, 0, 0, 0, intencity));
+        environment.add(new PointLight().set(color, screenWidth, 0, 0, intencity));
+        environment.add(new PointLight().set(color, 0, screenHeight, 0, intencity));
 //        environment.add(new PointLight().set(color, 0, 0, screenDepth, intencity));
 //        environment.add(new PointLight().set(color, screenWidth, screenHeight, 0, intencity));
 //        environment.add(new PointLight().set(color, screenWidth, 0, screenDepth, intencity));
 //        environment.add(new PointLight().set(color, 0, screenHeight, screenDepth, intencity));
-//        environment.add(new PointLight().set(color, screenWidth, screenHeight, screenDepth, intencity));
-        intencity /= 3;
+        environment.add(new PointLight().set(color, screenWidth, screenHeight, screenDepth, intencity));
         environment.add(new PointLight().set(color, screenWidth/2, screenHeight/2, screenDepth/2, intencity));
-
 
         mainCam = newPerspectiveCamera();
         cameraMover = new PerspectiveCameraMover(mainCam);
