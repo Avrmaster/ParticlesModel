@@ -233,17 +233,17 @@ public class ParticlesModel3D extends ApplicationAdapter {
 
         float speed = 10;
 
-        if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)) {
+        if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_RIGHT)) {
             speed = 100;
         }
 
-        if (Gdx.input.isKeyPressed(Input.Keys.W)) {
+        if (Gdx.input.isKeyPressed(Input.Keys.H)) {
             zoom(speed);
         }
         if (Gdx.input.isKeyPressed(Input.Keys.S)) {
             zoom(-speed);
         }
-        if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
+        if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
             rotate(-0.5f);
         }
         if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
@@ -274,10 +274,9 @@ public class ParticlesModel3D extends ApplicationAdapter {
     }
 
     private void zoom(float amount) {
-        float dzy = mainCam.direction.y*amount;
-        float dzx = mainCam.direction.x*amount;
-        float dzz = mainCam.direction.z*amount;
-        mainCam.position.add(dzx, dzy, dzz);
+        mainCam.position.add(mainCam.direction.x*amount,
+                mainCam.direction.y*amount,
+                mainCam.direction.z*amount);
     }
 
     private void rotate(float amount) {

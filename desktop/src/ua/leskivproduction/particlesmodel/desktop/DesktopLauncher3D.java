@@ -10,7 +10,7 @@ public class DesktopLauncher3D {
     public static void main (String[] arg) {
         LwjglApplicationConfiguration cfg = new LwjglApplicationConfiguration();
 
-        cfg.title = "Particles Model 3D";
+        cfg.title = "Particles Model super3D";
         cfg.useGL30 = true;
 
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
