@@ -36,7 +36,7 @@ public class ParticlesModel3D extends ApplicationAdapter {
     private ModelBatch modelBatch;
     private Environment environment;
 
-    private final static int PARTICLES_COUNT = 2000;
+    private final static int PARTICLES_COUNT = 500;
     private final MinQueue<ModelEvent> eventMinQueue = new MinQueue<ModelEvent>((int)(PARTICLES_COUNT*Math.log(PARTICLES_COUNT)));
     private Particle3D[] particles;
 
@@ -227,7 +227,7 @@ public class ParticlesModel3D extends ApplicationAdapter {
         modelBatch.end();
     }
 
-    private  void handleInput() {
+    private void handleInput() {
         int dx = Gdx.graphics.getWidth()/100;
         int dy = Gdx.graphics.getHeight()/100;
 
@@ -249,23 +249,18 @@ public class ParticlesModel3D extends ApplicationAdapter {
         if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
             rotate(0.5f);
         }
-        if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
+        if (Gdx.input.isKeyPressed(Input.Keys.Q)) {
             float x = mainCam.position.x;
             float y = mainCam.position.y;
             float z = mainCam.position.z;
             mainCam.position.set(x, (float)(y*0.98), z);
         }
-        if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
+
+        if (Gdx.input.isKeyPressed(Input.Keys.E)) {
             float x = mainCam.position.x;
             float y = mainCam.position.y;
             float z = mainCam.position.z;
             mainCam.position.set(x, (float) (y * 1.02), z);
-        }
-//        if (Gdx.input.isKeyPressed(Input.Keys.W)) {
-//            mainCam.rotate(-0.5f, 0, 1, 0);
-//        }
-        if (Gdx.input.isKeyPressed(Input.Keys.E)) {
-            mainCam.rotate(0.5f, 0, 1, 0);
         }
 
         if (Gdx.input.isKeyPressed(Input.Keys.R)) {
@@ -274,8 +269,9 @@ public class ParticlesModel3D extends ApplicationAdapter {
     }
 
     private void zoom(float amount) {
-        float dzy = mainCam.direction.y*amount;
+        //changed rows
         float dzx = mainCam.direction.x*amount;
+        float dzy = mainCam.direction.y*amount;
         float dzz = mainCam.direction.z*amount;
         mainCam.position.add(dzx, dzy, dzz);
     }
