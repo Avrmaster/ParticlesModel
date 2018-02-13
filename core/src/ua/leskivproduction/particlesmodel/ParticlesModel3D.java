@@ -13,6 +13,7 @@ import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.FloatAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
+import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.environment.PointLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
@@ -54,17 +55,12 @@ public class ParticlesModel3D extends ApplicationAdapter {
         int screenDepth = Math.max(screenWidth, screenHeight);
 
         environment = new Environment();
-        Color color = Color.WHITE;
-        int intencity = 1000000;
-        environment.add(new PointLight().set(color, 0, 0, 0, intencity));
-        environment.add(new PointLight().set(color, screenWidth, 0, 0, intencity));
-        environment.add(new PointLight().set(color, 0, screenHeight, 0, intencity));
-//        environment.add(new PointLight().set(color, 0, 0, screenDepth, intencity));
-//        environment.add(new PointLight().set(color, screenWidth, screenHeight, 0, intencity));
-//        environment.add(new PointLight().set(color, screenWidth, 0, screenDepth, intencity));
-//        environment.add(new PointLight().set(color, 0, screenHeight, screenDepth, intencity));
-        environment.add(new PointLight().set(color, screenWidth, screenHeight, screenDepth, intencity));
-        environment.add(new PointLight().set(color, screenWidth/2, screenHeight/2, screenDepth/2, intencity));
+        float intencity = 0.01f;
+        Color color = new Color(1.0f*intencity, 0.9f*intencity, 0.7f*intencity, 0.0f);
+        environment.add(new DirectionalLight().set(color, new Vector3(1, 1, 1)));
+        environment.add(new DirectionalLight().set(color, new Vector3(-1, -1, -1)));
+        environment.add(new DirectionalLight().set(color, new Vector3(1, -1, 1)));
+        environment.add(new DirectionalLight().set(color, new Vector3(-1, 1, -1)));
 
         mainCam = newPerspectiveCamera();
         cameraMover = new PerspectiveCameraMover(mainCam);
@@ -134,7 +130,7 @@ public class ParticlesModel3D extends ApplicationAdapter {
         if (Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
             deltaTime /= 20;
         }
-        if (Gdx.input.isKeyPressed(Input.Keys.S)) {
+        if (Gdx.input.isKeyPressed(Input.Keys.C)) {
             deltaTime *= 20;
         }
         if (Gdx.input.isKeyPressed(Input.Keys.P)) {
@@ -235,11 +231,17 @@ public class ParticlesModel3D extends ApplicationAdapter {
         int dx = Gdx.graphics.getWidth()/100;
         int dy = Gdx.graphics.getHeight()/100;
 
-        if (Gdx.input.isKeyPressed(Input.Keys.A)) {
-            zoom(-30);
+        float speed = 10;
+
+        if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)) {
+            speed = 100;
         }
-        if (Gdx.input.isKeyPressed(Input.Keys.Q)) {
-            zoom(30f);
+
+        if (Gdx.input.isKeyPressed(Input.Keys.W)) {
+            zoom(speed);
+        }
+        if (Gdx.input.isKeyPressed(Input.Keys.S)) {
+            zoom(-speed);
         }
         if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
             rotate(-0.5f);
@@ -257,11 +259,11 @@ public class ParticlesModel3D extends ApplicationAdapter {
             float x = mainCam.position.x;
             float y = mainCam.position.y;
             float z = mainCam.position.z;
-            mainCam.position.set(x, (float)(y*1.02), z);
+            mainCam.position.set(x, (float) (y * 1.02), z);
         }
-        if (Gdx.input.isKeyPressed(Input.Keys.W)) {
-            mainCam.rotate(-0.5f, 0, 1, 0);
-        }
+//        if (Gdx.input.isKeyPressed(Input.Keys.W)) {
+//            mainCam.rotate(-0.5f, 0, 1, 0);
+//        }
         if (Gdx.input.isKeyPressed(Input.Keys.E)) {
             mainCam.rotate(0.5f, 0, 1, 0);
         }
