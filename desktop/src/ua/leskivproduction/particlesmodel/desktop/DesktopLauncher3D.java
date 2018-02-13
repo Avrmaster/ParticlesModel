@@ -10,14 +10,14 @@ public class DesktopLauncher3D {
     public static void main (String[] arg) {
         LwjglApplicationConfiguration cfg = new LwjglApplicationConfiguration();
 
-        cfg.title = "Particles Model super3D";
+        cfg.title = "Particles Model 3D";
         cfg.useGL30 = true;
 
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
         cfg.width = screenSize.width;
         cfg.height = screenSize.height;
-        cfg.fullscreen=true;
+        cfg.fullscreen = true;
 
 //        cfg.width = screenSize.width/2;
 //        cfg.height = screenSize.height/2;
